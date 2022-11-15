@@ -6,6 +6,19 @@ const criarPaciente = async (req, res) => {
 //    const { nome, telefone, endereco, plano_saude, plano_saude_numero } = req.body
 
     try {
+
+        const { nome, telefone, endereco, plano_saude, plano_saude_numero } = req.body
+
+        if(!nome) {
+            res.status(401).json({
+                mensagem: "Verificar se todos os campos foram preenchidos"
+            })
+        }
+
+        const buscarNumeroPlano = await PacienteSchema.find({ plano_saude_numero })
+            if(buscarNumeroPlano.length !== 0) {
+                return res.status(401).json({ mensagem: "Verificar informações que foram preenchidas [plano de saúde]"})
+            }
         const paciente = new PacienteSchema({
             nome: req.body.nome,
             telefone: req.body.telefone, 
@@ -76,10 +89,33 @@ const deletarPaciente = async(req, res) =>{
     }
 }
 
+const atualizarPacientePorId = async(req, res) => {
+    try {
+        const { nome, telefone, endereco, plano_saude, plano_saude_numero } = req.body;
+
+        const procurarPaciente = await PacienteSchema.findById(req.params.id);
+
+        procurarPaciente.nome = nome || procurarPaciente.nome;
+        procurarPaciente.telefone = telefone || procurarPaciente.telefone;
+        procurarPaciente.endereco = endereco || procurarPaciente.endereco;
+        procurarPaciente.plano_saude = plano_saude || procurarPaciente.plano_saude;
+        procurarPaciente.plano_saude_numero = plano_saude_numero || procurarPaciente.plano_saude_numero;
+
+        const pacienteAtualizado = procurarPaciente.save();
+
+        res.status(200).json(pacienteAtualizado)
+
+    } catch (error) {
+        res.status(400).json({
+            message: error.message
+        })
+    }
+}
 
 module.exports = {
     criarPaciente,
     buscarPaciente,
     buscarPacientePorId, 
-    deletarPaciente
+    deletarPaciente,
+    atualizarPacientePorId
 }
